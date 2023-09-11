@@ -68,3 +68,14 @@ function Mark_all!(robot)
     along!(robot, Ost, nsteps_west)
     along!(robot, Nord, nsteps_sud)
 end
+
+#Задача №3
+function Mark_perimeter!(robot)
+    nsteps_sud = numsteps_along!(robot, Sud)
+    nsteps_west = numsteps_along!(robot, West)
+    for side in (Ost, Nord, West, Sud)
+        mark_along!(robot, side)
+    end
+    along!(robot, Ost, nsteps_west)
+    along!(robot, Nord, nsteps_sud)
+end
