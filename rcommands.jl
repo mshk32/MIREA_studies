@@ -2,6 +2,7 @@ using HorizonSideRobots
 HSR = HorizonSideRobots
 
 inverse(side::HorizonSide)::HorizonSide = HorizonSide(mod(Int(side)+2,4))
+inverse(sides::Tuple{HorizonSide, HorizonSide}) = for side in sides HorizonSide(mod(Int(side)+2,4)) end
 
 function HSR.move!(robot, sides::Any)
     for s in sides
@@ -63,6 +64,17 @@ function Straight_cross!(robot)
 end 
 
 #Задача №2
+function Mark_perimeter!(robot)
+    nsteps_sud = numsteps_along!(robot, Sud)
+    nsteps_west = numsteps_along!(robot, West)
+    for side in (Ost, Nord, West, Sud)
+        mark_along!(robot, side)
+    end
+    along!(robot, Ost, nsteps_west)
+    along!(robot, Nord, nsteps_sud)
+end
+
+#Задача №3
 function Mark_all!(robot)
     nsteps_sud = numsteps_along!(robot, Sud)
     nsteps_west = numsteps_along!(robot, West)
@@ -79,13 +91,3 @@ function Mark_all!(robot)
     along!(robot, Nord, nsteps_sud)
 end
 
-#Задача №3
-function Mark_perimeter!(robot)
-    nsteps_sud = numsteps_along!(robot, Sud)
-    nsteps_west = numsteps_along!(robot, West)
-    for side in (Ost, Nord, West, Sud)
-        mark_along!(robot, side)
-    end
-    along!(robot, Ost, nsteps_west)
-    along!(robot, Nord, nsteps_sud)
-end
