@@ -1,6 +1,16 @@
 using HorizonSideRobots
+HSR = HorizonSideRobots
 
 inverse(side::HorizonSide)::HorizonSide = HorizonSide(mod(Int(side)+2,4))
+
+function HSR.move!(robot, sides::Any)
+    for s in sides
+        move!(robot, s)
+    end
+end
+
+HSR.isborder(robot, side::Tuple{HorizonSide, HorizonSide}) = isborder(robot,side[1]) || isborder(robot, side[2])
+
 
 function along!(robot, side)::Nothing
     while !isborder(robot, side)
