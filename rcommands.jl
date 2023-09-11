@@ -98,7 +98,7 @@ end
 
 #Задача №4
 function X_cross!(robot)
-    for side in (Tuple{Nord, West}, Tuple{Nord, Ost}, Tuple{Sud, Ost}, Tuple{Sud, West})
+    for side in ({Nord, West}, {Nord, Ost}, {Sud, Ost}, {Sud, West})
         nsteps_side = mark_along!(robot, side)
         along!(robot, inverse(side), nsteps_side)
     end
