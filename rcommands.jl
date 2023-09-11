@@ -57,10 +57,11 @@ function Mark_all!(robot)
     nsteps_sud = numsteps_along!(robot, Sud)
     nsteps_west = numsteps_along!(robot, West)
     side = Ost
-    while !isborder(robot, Nord)
-        mark_row!(robot, side)
+    mark_row!(robot, side)
+    while !isborder(robot, Nord) 
         move!(robot, Nord)
         side = inverse(side)
+        mark_row!(robot, side)
     end
     along!(robot, West)
     along!(robot, Sud)
