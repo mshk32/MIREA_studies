@@ -14,6 +14,16 @@ function along!(robot, side, num_steps)::Nothing
     end
 end
 
+function numsteps_along!(robot, side)::Integer
+    nsteps = 0
+    while !isborder(robot, side)
+        move!(robot, side)
+        nsteps += 1
+    end
+    return nsteps
+end
+
+
 function mark_along!(robot, side)::Integer
     nsteps = 0
     while !isborder(robot, side)
@@ -24,6 +34,16 @@ function mark_along!(robot, side)::Integer
     return nsteps
 end
 
+#Маркирует ряд, включая клетку позиции робота
+function mark_row!(robot, side)
+    putmarker!(robot)
+    while !isborder(robot, side)
+        move!(robot, side)
+        putmarker!(robot)
+    end
+end
+
+#Задача №1
 function Straight_cross!(robot)
     for side in (Nord, Ost, Sud, West)
         nsteps_side = mark_along!(robot, side)
@@ -32,3 +52,18 @@ function Straight_cross!(robot)
     putmarker!(robot)
 end 
 
+#Задача №2
+function Mark_all!(robot)
+    nsteps_sud = numsteps_along!(robot, Sud)
+    nsteps_west = numsteps_along!(robot, West)
+    side = Ost
+    while !isborder(robot, Nord)
+        mark_row!(robot, side)
+        move!(robot, Nord)
+        side = inverse(side)
+    end
+    along!(robot, West)
+    along!(robot, Sud)
+    along!(robot, Ost, nsteps_west)
+    along!(robot, Nord, nsteps_sud)
+end

@@ -1,6 +1,7 @@
+using HorizonSideRobots
 include("rcommands.jl")
 
 r = Robot("temp.sit", animate=true)
 
 
-Straight_cross!(r)
+Mark_all!(r)
