@@ -3,7 +3,7 @@ HSR = HorizonSideRobots
 
 #ф-ии для инверсии направлений
 inverse(side::HorizonSide)::HorizonSide = HorizonSide(mod(Int(side)+2,4))
-inverse(sides::Tuple{HorizonSide, HorizonSide}) = for side in sides HorizonSide(mod(Int(side)+2,4)) end
+inverse(direct::Ntuple{2, HorizonSide}) = inverse(direct)
 
 #метод ф-ии для перемещения по диагонали
 function HSR.move!(robot, sides::Any)
@@ -98,7 +98,7 @@ end
 
 #Задача №4
 function X_cross!(robot)
-    for side in ({Nord, West}, {Nord, Ost}, {Sud, Ost}, {Sud, West})
+    for side in ((Nord, West), (Nord, Ost), (Sud, Ost), (Sud, West))
         nsteps_side = mark_along!(robot, side)
         along!(robot, inverse(side), nsteps_side)
     end
