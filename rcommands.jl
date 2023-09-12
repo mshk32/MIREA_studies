@@ -3,7 +3,7 @@ HSR = HorizonSideRobots
 
 #ф-ии для инверсии направлений
 inverse(side::HorizonSide)::HorizonSide = HorizonSide(mod(Int(side)+2,4))
-inverse(direct::Ntuple{2, HorizonSide}) = inverse(direct)
+inverse(direct::NTuple{2, HorizonSide}) = inverse(direct)
 
 #метод ф-ии для перемещения по диагонали
 function HSR.move!(robot, sides::Any)
