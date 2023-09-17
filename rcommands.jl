@@ -3,7 +3,7 @@ HSR = HorizonSideRobots
 
 #ф-ии для инверсии направлений
 inverse(side::HorizonSide)::HorizonSide = HorizonSide(mod(Int(side)+2,4))
-inverse(direct::NTuple{2, HorizonSide}) = inverse(direct)
+inverse(direct::Tuple{HorizonSide, HorizonSide}) = inverse.(direct)
 
 #метод ф-ии для перемещения по диагонали
 function HSR.move!(robot, sides::Any)
@@ -57,10 +57,10 @@ function mark_row!(robot, side)
         move!(robot, side)
         putmarker!(robot)
     end
-end
+end     
 
 #Задача №1
-function Straight_cross!(robot)
+function straight_cross!(robot)
     for side in (Nord, Ost, Sud, West)
         nsteps_side = mark_along!(robot, side)
         along!(robot, inverse(side), nsteps_side)
@@ -69,7 +69,7 @@ function Straight_cross!(robot)
 end 
 
 #Задача №2
-function Mark_perimeter!(robot)
+function mark_perimeter!(robot)
     nsteps_sud = numsteps_along!(robot, Sud)
     nsteps_west = numsteps_along!(robot, West)
     for side in (Ost, Nord, West, Sud)
@@ -80,7 +80,7 @@ function Mark_perimeter!(robot)
 end
 
 #Задача №3
-function Mark_all!(robot)
+function mark_all!(robot)
     nsteps_sud = numsteps_along!(robot, Sud)
     nsteps_west = numsteps_along!(robot, West)
     side = Ost
@@ -97,10 +97,66 @@ function Mark_all!(robot)
 end
 
 #Задача №4
-function X_cross!(robot)
+function x_cross!(robot)
     for side in ((Nord, West), (Nord, Ost), (Sud, Ost), (Sud, West))
         nsteps_side = mark_along!(robot, side)
         along!(robot, inverse(side), nsteps_side)
     end
     putmarker!(robot)
-end 
+end
+
+#Перемещает робота в юго-западный угол (актуально только для Задачи№5)
+function move_to_angle!(robot)
+    p1 = (side=Nord, nsteps=numsteps_along!(robot, Sud))
+    p2 = (side=Ost, nsteps=numsteps_along!(robot, West))
+    p3 = (side=Nord, nsteps=numsteps_along!(robot, Sud))
+    return p3, p2, p1
+end
+
+function find_internal_border!(robot)
+    side = Ost
+    while !isborder(robot, Nord)#Сделать доп функцию для перемещения змейкой?
+        if isborder(robot, side)
+            move!(robot, Nord)
+            side = inverse(side)
+        end
+        move!(robot, side)
+    end
+end
+
+function move_to_internal_sudwest!(robot)
+    while isborder(robot, Nord)
+        move!(robot, West)
+    end
+end
+
+function mark_internal_perimetr!(robot)
+    for side in (Nord, Ost, Sud, West)
+        move!(robot, side)
+        putmarker!(robot)
+        while isborder(robot, HorizonSide(mod(Int(side)+3,4))) #проверяем границу "справа" от робота
+            move!(robot, side)
+            putmarker!(robot)
+        end
+    end
+end
+
+function move_back!(robot, back_path)
+    for path_part in back_path
+        along!(robot, path_part.side, path_part.nsteps)
+    end
+end
+
+
+
+#Задача №5
+function mark_external_internal!(robot)
+    back_path = move_to_angle!(robot)
+    mark_perimeter!(robot)
+    find_internal_border!(robot)
+    move_to_internal_sudwest!(robot)
+    mark_internal_perimetr!(robot)
+    along!(robot, Sud)
+    along!(robot, West)
+    move_back!(robot, back_path)
+end
