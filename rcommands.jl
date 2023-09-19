@@ -117,9 +117,13 @@ function x_cross!(robot)
 end
 
 
-
-
-
+"""
+Далее идет реализация Задачи№5 и функций для нее.
+Ее решение исключительно через сторонние функции,
+полезность которых в будущем достаточно сомнительна, мне не нравится.
+Часть вспомогательных ф-й я бы реализовал в самой задаче.
+Но не уверен, насколько я прав.
+"""
 
 #Перемещает робота в юго-западный угол (актуально только для Задачи№5)
 function move_to_angle!(robot)
@@ -163,8 +167,6 @@ function move_back!(robot, back_path)
     end
 end
 
-
-
 #Задача №5
 function mark_external_internal!(robot)
     back_path = move_to_angle!(robot)
@@ -177,7 +179,9 @@ function mark_external_internal!(robot)
     move_back!(robot, back_path)
 end
 
-
+"""
+Решение Задачи№5 закончено.
+"""
 
 
 #Задача №7
