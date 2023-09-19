@@ -1,9 +1,11 @@
 using HorizonSideRobots
 HSR = HorizonSideRobots
 
-#ф-ии для инверсии направлений
+#ф-ии для изменения направлений
 inverse(side::HorizonSide)::HorizonSide = HorizonSide(mod(Int(side)+2,4))
 inverse(direct::Tuple{HorizonSide, HorizonSide}) = inverse.(direct)
+right(side::HorizonSide)::HorizonSide = HorizonSide(mod(Int(side)+3,4))
+left(side::HorizonSide)::HorizonSide = HorizonSide(mod(Int(side)+1,4))
 
 #метод ф-ии для перемещения по диагонали
 function HSR.move!(robot, sides::Any)
@@ -48,6 +50,15 @@ function mark_along!(robot, side)::Integer
         nsteps += 1
     end
     return nsteps
+end
+
+#Ищет маркер по пути робота. Маркера нет - проходит максимум шагов
+function find_marker_along!(robot, side, max_num_steps)
+    num_steps = 0
+    while num_steps < max_num_steps && !ismarker(robot)
+        move!(robot, side)
+        num_steps += 1
+    end
 end
 
 #Маркирует ряд, включая клетку позиции робота
@@ -139,7 +150,7 @@ function mark_internal_perimetr!(robot)
     for side in (Nord, Ost, Sud, West)
         move!(robot, side)
         putmarker!(robot)
-        while isborder(robot, HorizonSide(mod(Int(side)+3,4))) #проверяем границу "справа" от робота
+        while isborder(robot, right(side))
             move!(robot, side)
             putmarker!(robot)
         end
@@ -180,9 +191,17 @@ function find_hole!(robot)
     end
     move!(robot, Nord)
     along!(robot, inverse(side), (n+1)/2)
-    #переместить робота на исходную координату но над перегородкой
 end
 
-
+#Задача №8
 function find_marker!(robot)
+    side = Nord
+    num_steps = 1
+    while !ismarker(robot)
+        find_marker_along!(robot, side, num_steps)
+        side = left(side)
+        find_marker_along!(robot, side, num_steps)
+        side = left(side)
+        num_steps += 1
+    end
 end
