@@ -105,6 +105,11 @@ function x_cross!(robot)
     putmarker!(robot)
 end
 
+
+
+
+
+
 #Перемещает робота в юго-западный угол (актуально только для Задачи№5)
 function move_to_angle!(robot)
     p1 = (side=Nord, nsteps=numsteps_along!(robot, Sud))
@@ -159,4 +164,25 @@ function mark_external_internal!(robot)
     along!(robot, Sud)
     along!(robot, West)
     move_back!(robot, back_path)
+end
+
+
+
+
+#Задача №7
+function find_hole!(robot)
+    side = Ost
+    n = 0
+    while isborder(robot, Nord)
+        n += 1
+        side = inverse(side)
+        along!(robot, side, n)
+    end
+    move!(robot, Nord)
+    along!(robot, inverse(side), (n+1)/2)
+    #переместить робота на исходную координату но над перегородкой
+end
+
+
+function find_marker!(robot)
 end
