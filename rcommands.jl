@@ -230,10 +230,10 @@ end
 
 #Задача №9
 function chess_mark!(robot)
-    nsteps = numsteps_along!(robot, Sud)
-    nsteps += numsteps_along!(robot, West)
+    nsteps_Sud = numsteps_along!(robot, Sud)
+    nsteps_West = numsteps_along!(robot, West)
     is_marker_needed::Bool = false
-    if nsteps % 2 == 0
+    if (nsteps_Sud + nsteps_West) % 2 == 0
         is_marker_needed = true
     end
     side = Ost
@@ -244,6 +244,11 @@ function chess_mark!(robot)
         is_marker_needed = !is_marker_needed
     end
     chess_row_mark!(robot, side, is_marker_needed)
+    along!(robot, Sud)
+    along!(robot, West)
+    along!(robot, Ost, nsteps_West)
+    along!(robot, Nord, nsteps_Sud)
 end
 
+#Задача №10
 
