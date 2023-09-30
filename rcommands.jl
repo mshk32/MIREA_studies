@@ -209,3 +209,41 @@ function find_marker!(robot)
         num_steps += 1
     end
 end
+
+
+#ф-я маркирует клетки через одну,
+#третий аргумент показывает, маркировать ли с первой клетки
+function chess_row_mark!(robot, side, mark_first_square)
+    is_marker = mark_first_square
+    while !isborder(robot, side)
+        if is_marker
+            putmarker!(robot)
+        end
+        is_marker = !is_marker
+        move!(robot, side)
+    end
+    if is_marker
+        putmarker!(robot)
+    end
+end
+
+
+#Задача №9
+function chess_mark!(robot)
+    nsteps = numsteps_along!(robot, Sud)
+    nsteps += numsteps_along!(robot, West)
+    is_marker_needed::Bool = false
+    if nsteps % 2 == 0
+        is_marker_needed = true
+    end
+    side = Ost
+    while !isborder(robot, Nord)
+        chess_row_mark!(robot, side, is_marker_needed)
+        move!(robot, Nord)
+        side = inverse(side)
+        is_marker_needed = !is_marker_needed
+    end
+    chess_row_mark!(robot, side, is_marker_needed)
+end
+
+

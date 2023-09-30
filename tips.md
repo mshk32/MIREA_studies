@@ -1,3 +1,4 @@
+Изначальный функционал робота    
     - move!
     - isborder
     - putmarker!
