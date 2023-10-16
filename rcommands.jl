@@ -1,6 +1,7 @@
 using HorizonSideRobots
 HSR = HorizonSideRobots
 
+
 #ф-ии для изменения направлений
 inverse(side::HorizonSide)::HorizonSide = HorizonSide(mod(Int(side)+2,4))
 inverse(direct::Tuple{HorizonSide, HorizonSide}) = inverse.(direct)
@@ -13,6 +14,15 @@ function HSR.move!(robot, sides::Any)
         move!(robot, s)
     end
 end
+
+#Попытка передвинуться, если нет границы
+try_move!(robot, side) = 
+    if isborder(robot, side)
+        return false
+    else
+        move!(robot, side)
+        return true
+    end
 
 #метод ф-ии для проверки границ при перемещении по диагонали
 HSR.isborder(robot, side::Tuple{HorizonSide, HorizonSide}) = isborder(robot,side[1]) || isborder(robot, side[2])
@@ -70,53 +80,6 @@ function mark_row!(robot, side)
     end
 end     
 
-#Задача №1
-function straight_cross!(robot)
-    for side in (Nord, Ost, Sud, West)
-        nsteps_side = mark_along!(robot, side)
-        along!(robot, inverse(side), nsteps_side)
-    end
-    putmarker!(robot)
-end 
-
-#Задача №2
-function mark_perimeter!(robot)
-    nsteps_sud = numsteps_along!(robot, Sud)
-    nsteps_west = numsteps_along!(robot, West)
-    for side in (Ost, Nord, West, Sud)
-        mark_along!(robot, side)
-    end
-    along!(robot, Ost, nsteps_west)
-    along!(robot, Nord, nsteps_sud)
-end
-
-#Задача №3
-function mark_all!(robot)
-    nsteps_sud = numsteps_along!(robot, Sud)
-    nsteps_west = numsteps_along!(robot, West)
-    side = Ost
-    mark_row!(robot, side)
-    while !isborder(robot, Nord) 
-        move!(robot, Nord)
-        side = inverse(side)
-        mark_row!(robot, side)
-    end
-    along!(robot, West)
-    along!(robot, Sud)
-    along!(robot, Ost, nsteps_west)
-    along!(robot, Nord, nsteps_sud)
-end
-
-#Задача №4
-function x_cross!(robot)
-    for side in ((Nord, West), (Nord, Ost), (Sud, Ost), (Sud, West))
-        nsteps_side = mark_along!(robot, side)
-        along!(robot, inverse(side), nsteps_side)
-    end
-    putmarker!(robot)
-end
-
-
 """
 Далее идет реализация Задачи№5 и функций для нее.
 Ее решение исключительно через сторонние функции,
@@ -167,49 +130,9 @@ function move_back!(robot, back_path)
     end
 end
 
-#Задача №5
-function mark_external_internal!(robot)
-    back_path = move_to_angle!(robot)
-    mark_perimeter!(robot)
-    find_internal_border!(robot)
-    move_to_internal_sudwest!(robot)
-    mark_internal_perimetr!(robot)
-    along!(robot, Sud)
-    along!(robot, West)
-    move_back!(robot, back_path)
-end
-
 """
 Решение Задачи№5 закончено.
 """
-
-
-#Задача №7
-function find_hole!(robot)
-    side = Ost
-    n = 0
-    while isborder(robot, Nord)
-        n += 1
-        side = inverse(side)
-        along!(robot, side, n)
-    end
-    move!(robot, Nord)
-    along!(robot, inverse(side), (n+1)/2)
-end
-
-#Задача №8
-function find_marker!(robot)
-    side = Nord
-    num_steps = 1
-    while !ismarker(robot)
-        find_marker_along!(robot, side, num_steps)
-        side = left(side)
-        find_marker_along!(robot, side, num_steps)
-        side = left(side)
-        num_steps += 1
-    end
-end
-
 
 #ф-я маркирует клетки через одну,
 #третий аргумент показывает, маркировать ли с первой клетки
@@ -225,30 +148,115 @@ function chess_row_mark!(robot, side, mark_first_square)
     if is_marker
         putmarker!(robot)
     end
+    return !is_marker
 end
 
 
-#Задача №9
-function chess_mark!(robot)
-    nsteps_Sud = numsteps_along!(robot, Sud)
-    nsteps_West = numsteps_along!(robot, West)
-    is_marker_needed::Bool = false
-    if (nsteps_Sud + nsteps_West) % 2 == 0
-        is_marker_needed = true
+#Функции высшего порядка
+along!(stop_condition::Function, robot, side) = 
+    while stop_condition() == false && try_move!(robot, side) end
+
+function numsteps_along!(stop_condition::Function, robot, side)
+    n = 0
+    while stop_condition() == false && try_move!(robot, side)
+        n += 1
     end
-    side = Ost
-    while !isborder(robot, Nord)
-        chess_row_mark!(robot, side, is_marker_needed)
-        move!(robot, Nord)
-        side = inverse(side)
-        is_marker_needed = !is_marker_needed
-    end
-    chess_row_mark!(robot, side, is_marker_needed)
-    along!(robot, Sud)
-    along!(robot, West)
-    along!(robot, Ost, nsteps_West)
-    along!(robot, Nord, nsteps_Sud)
+    return n
 end
 
-#Задача №10
+function snake!(stop_condition::Function, robot; start_side, ortogonal_side)
+    s = start_side
+    along!(robot, s) do 
+        stop_condition() || isborder(robot, s)
+    end
+    while !stop_condition() && try_move!(robot, ortogonal_side)
+        s = inverse(s)
+        along!(robot, s) do 
+            stop_condition() || isborder(robot, s)
+        end
+    end
+end
 
+snake!(robot; start_side, ortogonal_side) = 
+    snake!(() -> false, robot; start_side, ortogonal_side)
+
+function shatl!(stop_condition::Function, robot; start_side)
+    s = start_side
+    n = 0
+    while stop_condition() == false
+        n += 1
+        move!(robot, s, n)
+        s = inverse(s)
+    end
+    return (n+1)÷2 
+end
+
+function spiral!(stop_condition::Function, robot; start_side = Nord, nextside::Function = left)
+    side = start_side
+    n = 0
+    while stop_condition() == false
+        if iseven(n)
+            n += 1
+        end
+        move!(stop_condition, robot, side, num_maxsteps = n)
+        side = nextside(side)
+        move!(stop_condition, robot, side, num_maxsteps = n)
+        side = nextside(side)
+    end
+end
+
+function HorizonSideRobots.move!(stop_condition::Function, robot, side; num_maxsteps::Integer)
+    n = 0
+    while n < num_maxsteps && stop_condition() == false
+        n += 1
+        move!(robot, side)
+    end
+    return n
+end
+
+#Тип абстрактного робота
+abstract type AbstractRobot end
+HSR.move!(robot::AbstractRobot, side) = move!(get_baserobot(robot), side)
+HSR.isborder(robot::AbstractRobot, side) = isborder(get_baserobot(robot), side)
+HSR.putmarker!(robot::AbstractRobot) = putmarker!(get_baserobot(robot))
+HSR.ismarker(robot::AbstractRobot) = ismarker(get_baserobot(robot))
+HSR.temperature(robot::AbstractRobot) = temperature(get_baserobot(robot))
+
+
+
+mutable struct CountmarkersRobot <: AbstractRobot
+    robot::Robot
+    num_markers::Int64
+end
+ 
+get_baserobot(robot::CountmarkersRobot) = robot.robot
+
+function HSR.move!(robot::CountmarkersRobot, side) 
+    move!(robot.robot, side)
+    if ismarker(robot)
+        robot.num_markers += 1
+    end
+    nothing
+end
+
+
+#Определение типа координатного робота
+
+mutable struct RobotCoordinates
+    x::Int
+    y::Int
+end
+get_coords(coords::RobotCoordinates) = (coords.x, coords.y)
+
+struct CoordsRobot <: AbstractRobot
+    robot::Robot
+    coords::RobotCoordinates
+end
+
+function НоrizonSideRobots.move!(robot::CoordsRobot, side)
+    move!(robot.robot, side)
+    move!(robot.coord, side)
+end
+
+get_coords(crobot::CoordsRobot) = get_coords(crobot.coords)
+get_base_robot(crobot::CoordsRobot) = crobot.robot
